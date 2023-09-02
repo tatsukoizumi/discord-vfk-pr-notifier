@@ -58,6 +58,8 @@ def get_news_items(news_type: NEWS_TYPE) -> [dict]:
             "title": title,
             "image": image,
         })
+    # 古い順に送信されるようにする
+    news_items.reverse()
     return news_items
 
 
