@@ -5,10 +5,13 @@ import requests
 from bs4 import BeautifulSoup
 from dhooks import Embed, Webhook
 
+TOP_URL = "https://www.ventforet.jp"
+LOGO_URL = "https://cdn.www.ventforet.jp/system/images/club/95/original/27.png?1330092232"
+
 class NEWS_TYPE(Enum):
-    MATCH = 1
-    TEAM = 2
-    OTHER = 3
+    MATCH = 1 # 試合・イベント
+    TEAM = 2 # チーム
+    OTHER = 3 # その他
 
     @classmethod
     def get_names(cls) -> list:
@@ -47,11 +50,11 @@ def get_news_items(news_type: NEWS_TYPE) -> [dict]:
         href = item["href"]
         title = item.find(class_="top-news__information__detail").text
         release_id = href.split("/")[-1]
+        # TODO: release_idの保存　・比較
         image = item.find(class_="newsList__itemImage").find("img")["src"]
         news_items.append({
             "full_url": "/".join([url, release_id]),
             "title": title,
-            "id": release_id,
             "image": image,
         })
     return news_items
@@ -59,7 +62,8 @@ def get_news_items(news_type: NEWS_TYPE) -> [dict]:
 
 def get_embed(title: str, url: str, image: str) -> Embed:
     embed = Embed()
-    embed.set_author(name="ヴァンフォーレ甲府公式", url="https://www.ventforet.jp", icon_url="https://cdn.www.ventforet.jp/system/images/club/95/original/27.png?1330092232")
+    author_name = "ヴァンフォーレ甲府公式"
+    embed.set_author(name=author_name, url=TOP_URL, icon_url=LOGO_URL)
     embed.set_title(title, url=url)
     embed.set_thumbnail(image)
     return embed
