@@ -4,9 +4,12 @@ import requests
 
 from bs4 import BeautifulSoup
 from dhooks import Embed, Webhook
+from google.cloud import firestore
+
 
 TOP_URL = "https://www.ventforet.jp"
 LOGO_URL = "https://cdn.www.ventforet.jp/system/images/club/95/original/27.png?1330092232"
+
 
 class NEWS_TYPE(Enum):
     MATCH = 1 # 試合・イベント
@@ -40,6 +43,9 @@ def index_url(news_type: NEWS_TYPE) -> str:
         raise Exception("Unknown news type")
 
 
+db = firestore.Client()
+
+ref = db.collection("latest_news_id")
 
 def get_news_items(news_type: NEWS_TYPE) -> [dict]:
     url = index_url(news_type)
@@ -47,6 +53,7 @@ def get_news_items(news_type: NEWS_TYPE) -> [dict]:
     soup = BeautifulSoup(r.content, "html.parser")
     news_item_elements = soup.find_all("a", class_="newsList__item")
     news_items = []
+    print('hi')
     for item in news_item_elements:
         href = item["href"]
         title = item.find(class_="top-news__information__detail").text
@@ -73,10 +80,13 @@ def get_embed(news_title: str, news_url: str, news_image: str) -> Embed:
 
 
 if __name__ == "__main__":
+    for doc in ref.stream():
+        print('yes')
+        print(f'{doc.id} => {doc.to_dict()}')
     for news_type_name in NEWS_TYPE.get_names():
         news_type = NEWS_TYPE[news_type_name]
         hook = Webhook(webhook_url(news_type))
         news_items = get_news_items(news_type)
         for item in news_items:
             embed = get_embed(item["title"], item["full_url"], item["image"])
-            hook.send(embed=embed)
+            # hook.send(embed=embed)
