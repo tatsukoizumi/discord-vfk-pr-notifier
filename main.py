@@ -42,8 +42,8 @@ def index_url(news_type: NEWS_TYPE) -> str:
 
 
 def get_news_items(news_type: NEWS_TYPE) -> [dict]:
-    url = url(news_type)
-    r = requests.get(url(news_type))
+    url = index_url(news_type)
+    r = requests.get(url)
     soup = BeautifulSoup(r.content, "html.parser")
     news_item_elements = soup.find_all("a", class_="newsList__item")
     news_items = []
