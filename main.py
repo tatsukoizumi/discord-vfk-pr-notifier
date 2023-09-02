@@ -101,7 +101,7 @@ def get_embed(news_title: str, news_url: str, news_image: str) -> Embed:
     return embed
 
 
-if __name__ == "__main__":
+def main() -> None:
     for news_type_name in NEWS_TYPE.get_names():
         news_type = NEWS_TYPE[news_type_name]
         hook = Webhook(webhook_url(news_type))
@@ -109,3 +109,7 @@ if __name__ == "__main__":
         for item in news_items:
             embed = get_embed(item["title"], item["full_url"], item["image"])
             hook.send(embed=embed)
+
+## ローカルで実行する用
+if __name__ == "__main__":
+    main()
