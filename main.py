@@ -54,6 +54,11 @@ def get_latest_news_id(news_type: NEWS_TYPE) -> str:
     else:
         return ""
 
+def update_latest_id(id: str) -> None:
+    type_latest_id_ref = latest_news_id_ref.document(news_type.name)
+    type_latest_id_ref.set({"id": id})
+
+
 def get_news_items(news_type: NEWS_TYPE) -> [dict]:
     url = index_url(news_type)
     r = requests.get(url)
@@ -65,16 +70,23 @@ def get_news_items(news_type: NEWS_TYPE) -> [dict]:
         href = item["href"]
         title = item.find(class_="top-news__information__detail").text
 
-        release_id = href.split("/")[-1]
-        if release_id == saved_latest_id:
+        news_id = href.split("/")[-1]
+        if news_id == saved_latest_id:
             break
 
         image = item.find(class_="newsList__itemImage").find("img")["src"]
         news_items.append({
-            "full_url": "/".join([url, release_id]),
+            "id": news_id,
+            "full_url": "/".join([url, news_id]),
             "title": title,
             "image": image,
         })
+
+    # 最新idを更新
+    if len(news_items) > 0:
+        latest_item = news_items[0]
+        update_latest_id(latest_item["id"])
+
     # 古い順に送信されるようにする
     news_items.reverse()
     return news_items
