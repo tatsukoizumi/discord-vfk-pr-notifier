@@ -11,8 +11,8 @@ class NEWS_TYPE(Enum):
     OTHER = 3
 
     @classmethod
-    def get_values(cls) -> list:
-        return [i.value for i in cls]
+    def get_names(cls) -> list:
+        return [i.name for i in cls]
 
 
 def webhook_url(news_type: NEWS_TYPE) -> str:
@@ -25,19 +25,20 @@ def webhook_url(news_type: NEWS_TYPE) -> str:
     else:
         raise Exception("Unknown news type")
 
-def news_path(news_type: NEWS_TYPE) -> str:
+def get_url(news_type: NEWS_TYPE) -> str:
     if news_type == NEWS_TYPE.MATCH:
-        return "/match"
+        return "https://www.ventforet.jp/news/match"
     elif news_type == NEWS_TYPE.TEAM:
-        return "/team"
+        return "https://www.ventforet.jp/news/team"
     elif news_type == NEWS_TYPE.OTHER:
-        return "/other"
+        return "https://www.ventforet.jp/news/other"
     else:
         raise Exception("Unknown news type")
 
 
+
 def get_news_items(news_type: NEWS_TYPE) -> [dict]:
-    url = "https://www.ventforet.jp/news/" + news_path(news_type)
+    url = get_url(news_type)
     r = requests.get(url)
     soup = BeautifulSoup(r.content, "html.parser")
     news_item_elements = soup.find_all("a", class_="newsList__item")
@@ -56,22 +57,19 @@ def get_news_items(news_type: NEWS_TYPE) -> [dict]:
     return news_items
 
 
-def get_content(title: str, url: str) -> str:
-    return f"{title}\n{url}"
-
 def get_embed(title: str, url: str, image: str) -> Embed:
     embed = Embed()
+    embed.set_author(name="ヴァンフォーレ甲府公式", url="https://www.ventforet.jp", icon_url="https://cdn.www.ventforet.jp/system/images/club/95/original/27.png?1330092232")
     embed.set_title(title, url=url)
-    embed.set_image(image)
+    embed.set_thumbnail(image)
     return embed
 
 
 if __name__ == "__main__":
-    for type in NEWS_TYPE.get_values():
-        webhook_url = webhook_url(type)
-        hook = Webhook(webhook_url)
-        items = get_news_items()
-        for item in items[0:1]:
-            content = get_content(item["title"], item["full_url"])
+    for news_type_name in NEWS_TYPE.get_names():
+        news_type = NEWS_TYPE[news_type_name]
+        hook = Webhook(webhook_url(news_type))
+        items = get_news_items(news_type)
+        for item in items[1:2]:
             embed = get_embed(item["title"], item["full_url"], item["image"])
-            hook.send(content=content,embed=embed)
+            hook.send(embed=embed)
