@@ -70,6 +70,6 @@ if __name__ == "__main__":
         news_type = NEWS_TYPE[news_type_name]
         hook = Webhook(webhook_url(news_type))
         items = get_news_items(news_type)
-        for item in items[1:2]:
+        for item in items:
             embed = get_embed(item["title"], item["full_url"], item["image"])
             hook.send(embed=embed)
