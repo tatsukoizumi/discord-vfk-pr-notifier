@@ -43,22 +43,32 @@ def index_url(news_type: NEWS_TYPE) -> str:
         raise Exception("Unknown news type")
 
 
+# firestoreの初期化
 db = firestore.Client()
+latest_news_id_ref = db.collection("latest_news_id")
 
-ref = db.collection("latest_news_id")
+def get_latest_news_id(news_type: NEWS_TYPE) -> str:
+    type_latest_id_ref = latest_news_id_ref.document(news_type.name)
+    if type_latest_id_ref.get().exists:
+        return type_latest_id_ref.get().to_dict()["id"]
+    else:
+        return ""
 
 def get_news_items(news_type: NEWS_TYPE) -> [dict]:
     url = index_url(news_type)
     r = requests.get(url)
     soup = BeautifulSoup(r.content, "html.parser")
     news_item_elements = soup.find_all("a", class_="newsList__item")
+    saved_latest_id = get_latest_news_id(news_type)
     news_items = []
-    print('hi')
     for item in news_item_elements:
         href = item["href"]
         title = item.find(class_="top-news__information__detail").text
+
         release_id = href.split("/")[-1]
-        # TODO: release_idの保存　・比較
+        if release_id == saved_latest_id:
+            break
+
         image = item.find(class_="newsList__itemImage").find("img")["src"]
         news_items.append({
             "full_url": "/".join([url, release_id]),
@@ -80,13 +90,10 @@ def get_embed(news_title: str, news_url: str, news_image: str) -> Embed:
 
 
 if __name__ == "__main__":
-    for doc in ref.stream():
-        print('yes')
-        print(f'{doc.id} => {doc.to_dict()}')
     for news_type_name in NEWS_TYPE.get_names():
         news_type = NEWS_TYPE[news_type_name]
         hook = Webhook(webhook_url(news_type))
         news_items = get_news_items(news_type)
         for item in news_items:
             embed = get_embed(item["title"], item["full_url"], item["image"])
-            # hook.send(embed=embed)
+            hook.send(embed=embed)
