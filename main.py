@@ -55,7 +55,7 @@ def get_latest_news_id(news_type: NEWS_TYPE) -> str:
     else:
         return ""
 
-def update_latest_id(id: str) -> None:
+def update_latest_id(news_type: NEWS_TYPE, id: str) -> None:
     type_latest_id_ref = latest_news_id_ref.document(news_type.name)
     type_latest_id_ref.set({"id": id})
 
@@ -86,7 +86,7 @@ def get_news_items(news_type: NEWS_TYPE) -> [dict]:
     # 最新idを更新
     if len(news_items) > 0:
         latest_item = news_items[0]
-        update_latest_id(latest_item["id"])
+        update_latest_id(news_type, latest_item["id"])
 
     # 古い順に送信されるようにする
     news_items.reverse()
@@ -102,8 +102,8 @@ def get_embed(news_title: str, news_url: str, news_image: str) -> Embed:
     return embed
 
 
-def main(event: CloudEvent) -> None:
-    print(event)
+def main(event, context) -> None:
+    print(event, context)
     for news_type_name in NEWS_TYPE.get_names():
         news_type = NEWS_TYPE[news_type_name]
         hook = Webhook(webhook_url(news_type))
