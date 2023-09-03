@@ -3,6 +3,7 @@ import os
 import requests
 
 from bs4 import BeautifulSoup
+from cloudevents.http import CloudEvent
 from dhooks import Embed, Webhook
 from google.cloud import firestore
 
@@ -101,7 +102,8 @@ def get_embed(news_title: str, news_url: str, news_image: str) -> Embed:
     return embed
 
 
-def main() -> None:
+def main(event: CloudEvent) -> None:
+    print(event)
     for news_type_name in NEWS_TYPE.get_names():
         news_type = NEWS_TYPE[news_type_name]
         hook = Webhook(webhook_url(news_type))
