@@ -111,7 +111,3 @@ def main(event: CloudEvent) -> None:
         for item in news_items:
             embed = get_embed(item["title"], item["full_url"], item["image"])
             hook.send(embed=embed)
-
-## ローカルで実行する用
-if __name__ == "__main__":
-    main()
